@@ -65,22 +65,26 @@ d3.csv("data.csv", d3.autoType).then((data) => {
     .append("g")
     .attr("transform", `translate(${margin.left},0)`)
     .call(d3.axisLeft(yScale));
-  //   // AXIS LABELS ----------------------------------------------
-  //   svg.append("text")
-  //     .attr("text-anchor", "end")
-  //     .attr("x", width / 2 + margin.left * 2)
-  //     .attr("y", height - 6)
-  //     .style("font-weight", "bold")
-  //     .style("font-size", "1.2rem")
-  //     .text("Rotten Tomatoes Ratings %");
-  //   svg.append("text")
-  //     .attr("text-anchor", "end")
-  //     .attr("x", -height / 2 + margin.left * 2)
-  //     .attr("y", 15)
-  //     .style("font-weight", "bold")
-  //     .style("font-size", "1.2rem")
-  //     .attr("transform", "rotate(-90)")
-  //     .text("Audience Ratings %");
+  // AXIS LABELS ----------------------------------------------
+  svg
+    .append("text")
+    .attr("text-achor", "end")
+    .attr("x", width / 3)
+    .attr("y", height - margin.bottom / 4)
+    .style("font-weight", "bold")
+    .style("font-size", "1.2rem")
+    .text("Average Guild Level");
+
+  svg
+    .append("text")
+    .attr("text-anchor", "end")
+    .attr("x", width * -0.35)
+    .attr("y", 18)
+    .attr("font-weight", "bold")
+    .attr("font-size", "1.2rem")
+    .attr("transform", "rotate(-90)")
+    .text("Gold per Month");
+
   //   // INVISIBLE TOOLTIP DIV -----------------------------------
   //   const tooltip = d3.select("#container")
   //                     .append("div")
@@ -160,49 +164,70 @@ d3.csv("data.csv", d3.autoType).then((data) => {
   //   );
 
   //   // LEGENDS ------------------------------------------------
-  //   // Title for Genre Legend
-  //   svg.append("text")
-  //     .text("Genre:")
-  //     .attr("x", width - margin.right / 2 - 15)
-  //     .attr("y", 110)
-  //     .style("font-size", "1rem")
-  //     .style("font-weight", "bold")
-  //   // Color dots for Genre Legend
-  //   svg.selectAll(".legend-dot")
-  //     .data(allColors)
-  //     .join("circle")
-  //     .attr("class", "legend-dot")
-  //     .attr("cx", width - margin.right * .6 - 10)
-  //     .attr("cy", (_, i) => 130 + i * 20)
-  //     .attr("r", 6)
-  //     .style("fill", d => d)
-  //     .attr("stroke", "black")
-  //     .attr("opacity", "0.6")
-  //   // Genre labels for Genre Legend
-  //   svg.selectAll(".legend-genre")
-  //     .data(allGenres)
-  //     .join("text")
-  //     .attr("class", "legend-genre")
-  //     .attr("x", width - margin.right / 2 - 10)
-  //     .attr("y", (_, i) => 130 + i * 20)
-  //     .text(d => d)
-  //     .style("font-size", "15px")
-  //     .attr("alignment-baseline","middle")
+  //   // Title for Legend
+  svg
+    .append("text")
+    .text("Main Classes:")
+    .attr("x", width - margin.right * 0.65)
+    .attr("y", height * 0.3 - margin.top)
+    .style("font-size", "1rem")
+    .style("font-weight", "bold");
+
+  //   // Color dots for Legend
+  svg
+    .selectAll(".legend-dot")
+    .data(d3.schemeCategory10.slice(0, allClasses.length))
+    .join("circle")
+    .attr("class", "legend-dot")
+    .attr("cx", width - margin.right * 0.62)
+    .attr("cy", (_, i) => height * 0.33 - margin.top + 22 * i)
+    .attr("r", 6)
+    .attr("fill", (d) => d)
+    .attr("stroke", "black")
+    .attr("opacity", 0.7);
+
+  //   // Class labels for Legend
+  svg
+    .selectAll(".legend-class")
+    .data(allClasses)
+    .join("text")
+    .attr("class", "legend-class")
+    .attr("x", width - margin.right * 0.55)
+    .attr("y", (_, i) => height * 0.332 - margin.top + 22 * i)
+    .text((d) => d)
+    .style("font-size", "15px")
+    .attr("alignment-baseline", "middle");
+
   //   // Grabbing the min, median, and max of budgets
-  //   const allBudgets = data.map(d => d["Budget (million $)"]);
-  //   const threeBudgets = [
-  //     d3.min(allBudgets),
-  //     d3.median(allBudgets),
-  //     d3.max(allBudgets)
-  //   ];
+  const allMemberCounts = data.map((d) => d.membersCount);
+  const threeMemberCounts = [
+    d3.min(allMemberCounts),
+    d3.median(allMemberCounts),
+    d3.max(allMemberCounts),
+  ];
+
   //   // Title for Budget Legend
-  //   svg.append("text")
-  //     .text("Budget:")
-  //     .attr("x", width - margin.right / 2 - 17)
-  //     .attr("y", 355)
-  //     .style("font-size", "1rem")
-  //     .style("font-weight", "bold")
+  svg
+    .append("text")
+    .text("Member Count:")
+    .attr("x", width - margin.right * 0.65)
+    .attr("y", height * 0.6 - margin.top)
+    .style("font-weight", "bold")
+    .style("font-size", "1rem");
+
   //   // Circle Sizes for Budget Legend
+  svg
+    .selectAll(".members-size")
+    .data(threeMemberCounts)
+    .join("circle")
+    .attr("class", "members-size")
+    .attr("cx", (d) => width - margin.right * 0.65 + sizeScale(d) / 2)
+    .attr("cy", (d, i) => height * 0.63 - margin.top + i * 20 + sizeScale(d))
+    .attr("r", (d) => sizeScale(d))
+    .attr("fill", "white")
+    .attr("stroke", "black")
+    .attr("opacity", 0.7);
+
   //   svg.selectAll(".legend-size")
   //     .data(threeBudgets)
   //     .join("circle")
