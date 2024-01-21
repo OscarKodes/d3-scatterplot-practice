@@ -85,51 +85,6 @@ d3.csv("data.csv", d3.autoType).then((data) => {
     .attr("transform", "rotate(-90)")
     .text("Gold per Month");
 
-  //   // INVISIBLE TOOLTIP DIV -----------------------------------
-  //   const tooltip = d3.select("#container")
-  //                     .append("div")
-  //                     .attr("class", "tooltip")
-  //                     .style("opacity", 0);
-  //   // TOOLTIP MOUSE OVER EVENT HANDLER ------------------------
-  //   const tipMouseover = function(event, d) {
-  //     // Dynamic html to put inside tooltip div catered to specific film
-  //     const tooltipHTML = `<b>Title:</b> ${d.Film}<br/>
-  //                           <b>Genre:</b> ${d.Genre}</span><br/>
-  //                           <b>Rotten Tomatoes:</b> ${d["Rotten Tomatoes Ratings %"]}%<br/>
-  //                           <b>Audience Ratings:</b> ${d["Audience Ratings %"]}%<br/>
-  //                           <b>Budget:</b> $${d["Budget (million $)"]} million (USD)<br>
-  //                           <b>Year:</b> ${d["Year of release"]}`;
-  //     let color = colorScale(d.Genre);
-  //     let size = sizeScale(d["Budget (million $)"]);
-  //     // Position the invisible tooltip div above and left of hovering cursor
-  //     tooltip.html(tooltipHTML)
-  //       .style("left", ((d.Film.length >= 20 ? // Dynamic positioning if long film title
-  //                         event.pageX - 160 - ((d.Film.length - 19) * 5) :
-  //                         event.pageX - 160) + "px"))
-  //       .style("top", (event.pageY - 120 - 0.5 * size + "px"))
-  //       .style("border", `${color} solid 0.2rem`) // Same border color as genre
-  //       .style("outline", "1px solid black")
-  //       .transition()
-  //         .duration(100)
-  //         .style("opacity", .85) // Make invisible div visable
-  //     // Highlight the hovered circle
-  //     d3.select(this)
-  //       .transition()
-  //       .duration(100)
-  //       .style("opacity", 1);
-  //   };
-  //   // TOOLTIP MOUSE OUT EVENT HANDLER ----------------------
-  //   const tipMouseout = function(d) {
-  //       tooltip.transition()
-  //           .duration(200)
-  //           .style("opacity", 0); // Make tooltip div invisible once again
-  //       // Remove highlight from hovered circle
-  //       d3.select(this)
-  //       .transition()
-  //       .duration(200)
-  //       .style("opacity", 0.5);
-  //   };
-
   // DOTS FOR SCATTERPLOT ----------------------------------
   const dot = svg
     .selectAll(".dot") // Line below sorts films by largest budget to smallest, so small dots appear on top
@@ -162,6 +117,27 @@ d3.csv("data.csv", d3.autoType).then((data) => {
   //           .attr("transform", d => `translate(${xScale(d["Rotten Tomatoes Ratings %"])}, ${yScale(d["Audience Ratings %"])})`)
   //       )
   //   );
+
+  // TOOLTIPS ----------------------------------------------------
+
+  dot.attr("data-tippy-allowHTML", true);
+
+  dot.attr("data-tippy-content", (d) => {
+    return `
+    <p>Guild Name: ${d.guildName}</p>
+    <p>Main Class: ${d.mainClass}</p>
+    <p>Average Level: ${d.avgLvl}</p>
+    <p>Gold Per Month: ${d.goldPerMonth}</p>
+    <p>Member Count: ${d.membersCount}</p>
+    `;
+  });
+
+  tippy(dot.nodes());
+
+  // tippy(".dot", {
+  //   content: "<strong>Bolded content</strong>",
+  //   allowHTML: true,
+  // });
 
   //   // LEGENDS ------------------------------------------------
   //   // Title for Legend
@@ -222,32 +198,24 @@ d3.csv("data.csv", d3.autoType).then((data) => {
     .join("circle")
     .attr("class", "members-size")
     .attr("cx", (d) => width - margin.right * 0.65 + sizeScale(d) / 2)
-    .attr("cy", (d, i) => height * 0.63 - margin.top + i * 20 + sizeScale(d))
+    .attr("cy", (d, _) => height * 0.63 - margin.top * 1.6 + sizeScale(d) * 7)
     .attr("r", (d) => sizeScale(d))
     .attr("fill", "white")
     .attr("stroke", "black")
     .attr("opacity", 0.7);
 
-  //   svg.selectAll(".legend-size")
-  //     .data(threeBudgets)
-  //     .join("circle")
-  //     .attr("class", "legend-size")
-  //     .attr("cx", d => width - margin.right * .6 - sizeScale(d) / 2 - 5)
-  //     .attr("cy", (_, i) => 378 + i * 35)
-  //     .attr("r", d => sizeScale(d))
-  //     .style("fill", "white")
-  //     .attr("stroke", "black")
-  //     .attr("opacity", "0.6")
-  //   // Budget Dollars for Budget Legend
-  //   svg.selectAll(".legend-budget")
-  //     .data(threeBudgets)
-  //     .join("text")
-  //     .attr("class", "legend-budget")
-  //     .attr("x", width - margin.right * .45 - 5)
-  //     .attr("y", (_, i) => 380 + i * 35)
-  //     .text(d => d === 0 ? "< $1 mill" : `$${d} mill`)
-  //     .style("font-size", "15px")
-  //     .attr("alignment-baseline","middle")
+  //   // Member Count for Legend
+  svg
+    .selectAll(".legend-memberCount")
+    .data(threeMemberCounts)
+    .join("text")
+    .attr("class", "legend-memberCount")
+    .attr("x", width - margin.right * 0.5)
+    .attr("y", (d) => height * 0.625 - margin.top * 1.5 + sizeScale(d) * 7)
+    .text((d) => d + " members")
+    .style("font-size", "15px")
+    .attr("alignment-baseline", "middle");
+
   // FILM TITLE LABELS ON HOVERED DOTS -----------------------
   // NOTE: Not used. Decided to replace with tooltips.
   // const text = svg
