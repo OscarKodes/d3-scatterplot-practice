@@ -14,3 +14,33 @@ h1 {
     margin: 0 auto 15rem;
     padding: 0 auto;
 }
+
+.tippy-box {
+    background-color: rgb(190, 190, 190);
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.4);
+    color: black;
+}
+
+.tippy-arrow {
+    color: rgb(190, 190, 190);
+}
+
+.tooltip {
+    text-align: left;
+}
+
+.tooltip span {
+    font-weight: bold;
+}
+
+.guild-name {
+    font-weight: bold;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.tooltip .info {
+    background-color: rgb(219, 219, 219);
+    padding: .15rem .35rem;
+    border: 1px black solid;
+}

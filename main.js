@@ -124,20 +124,19 @@ d3.csv("data.csv", d3.autoType).then((data) => {
 
   dot.attr("data-tippy-content", (d) => {
     return `
-    <p>Guild Name: ${d.guildName}</p>
-    <p>Main Class: ${d.mainClass}</p>
-    <p>Average Level: ${d.avgLvl}</p>
-    <p>Gold Per Month: ${d.goldPerMonth}</p>
-    <p>Member Count: ${d.membersCount}</p>
+    <div class="tooltip">
+      <p class="guild-name">The ${d.guildName}</p>
+      <div class="info">
+        <p><span>Main Class: </span>${d.mainClass}</p>
+        <p><span>Average Level: </span>${d.avgLvl}</p>
+        <p><span>Gold Per Month: </span>${d.goldPerMonth}</p>
+        <p><span>Member Count: </span>${d.membersCount}</p>
+      </div>
+    </div>
     `;
   });
 
   tippy(dot.nodes());
-
-  // tippy(".dot", {
-  //   content: "<strong>Bolded content</strong>",
-  //   allowHTML: true,
-  // });
 
   //   // LEGENDS ------------------------------------------------
   //   // Title for Legend
@@ -215,28 +214,4 @@ d3.csv("data.csv", d3.autoType).then((data) => {
     .text((d) => d + " members")
     .style("font-size", "15px")
     .attr("alignment-baseline", "middle");
-
-  // FILM TITLE LABELS ON HOVERED DOTS -----------------------
-  // NOTE: Not used. Decided to replace with tooltips.
-  // const text = svg
-  //   .selectAll("text")
-  //   .data(data)
-  //   .enter()
-  //   .append("text")
-  //   .attr("x", d => xScale(d["Rotten Tomatoes Ratings %"]))
-  //   .attr("y", d => yScale(d["Audience Ratings %"]))
-  //   .text(d => d.Film)
-  //   .style("opacity", 0)
-  //   .on("mouseover", function(d) {
-  //     d3.select(this)
-  //       .transition()
-  //       .duration("100")
-  //       .style("opacity", 1)
-  //   })
-  //   .on("mouseout", function(d) {
-  //     d3.select(this)
-  //       .transition()
-  //       .duration("200")
-  //       .style("opacity", 0)
-  //   });
 });
