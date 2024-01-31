@@ -12,10 +12,26 @@ let width = window.innerWidth * 0.8;
 // so the plot isn't stretched too much if have wide screen
 width = width > height ? height + margin.right : width;
 
-/* LOAD DATA */
-d3.csv("data.csv", d3.autoType).then((data) => {
-  console.log(data);
+// Variables to be assigned in init() and used in draw()
+let svg, xScale, yScale, colorScale, sizeScale;
 
+// APPLICATION STATE #########################################
+let state = {
+  data: [],
+  selectedClass: "All",
+};
+
+// IMPORT IN DATA ############################################
+d3.csv("data.csv", d3.autoType).then((data) => {
+  // Save the imported data into state object
+  state.data = data;
+
+  // Call init() function right after importing data
+  init();
+});
+
+// INITIALIZING FUNTION ######################################
+function init() {
   // Plan for scatterplot:
   //   title = guildName
   //     x = avgLvl
@@ -24,37 +40,34 @@ d3.csv("data.csv", d3.autoType).then((data) => {
   //     color = mainClass
 
   /* SCALES ##################################################### */
-  const xScale = d3
+  xScale = d3
     .scaleLinear()
-    .domain([0, d3.max(data.map((d) => d.avgLvl))])
+    .domain([0, d3.max(state.data.map((d) => d.avgLvl))])
     .range([margin.left, width - margin.right]);
 
-  const yScale = d3
+  yScale = d3
     .scaleLinear()
-    .domain([0, d3.max(data, (d) => d.goldPerMonth)])
+    .domain([0, d3.max(state.data, (d) => d.goldPerMonth)])
     .range([height - margin.top, margin.bottom]);
 
   // // Placing genres and colors in variables to be reused in colorScale & Legend
-  let allClasses = new Set(data.map((d) => d.mainClass));
+  let allClasses = new Set(state.data.map((d) => d.mainClass));
   allClasses = [...allClasses];
 
-  const colorScale = d3
-    .scaleOrdinal()
-    .domain(allClasses)
-    .range(d3.schemeCategory10);
-  const sizeScale = d3
+  colorScale = d3.scaleOrdinal().domain(allClasses).range(d3.schemeCategory10);
+  sizeScale = d3
     .scaleSqrt()
-    .domain([1, d3.max(data, (d) => d.membersCount)])
+    .domain([1, d3.max(state.data, (d) => d.membersCount)])
     .range([3, 16]);
 
   /* HTML ELEMENTS ############################################## */
   // SVG CANVAS -----------------------------------------------
-  const svg = d3
+  svg = d3
     .select("#container")
     .append("svg")
     .attr("width", width)
-    .attr("height", height)
-    .style("background-color", "lavender");
+    .attr("height", height);
+  // .style("background-color", "lavender");
   // AXIS TICKS  ----------------------------------------------
   svg
     .append("g")
@@ -84,59 +97,6 @@ d3.csv("data.csv", d3.autoType).then((data) => {
     .attr("font-size", "1.2rem")
     .attr("transform", "rotate(-90)")
     .text("Gold per Month");
-
-  // DOTS FOR SCATTERPLOT ----------------------------------
-  const dot = svg
-    .selectAll(".dot") // Line below sorts films by largest budget to smallest, so small dots appear on top
-    .data(data)
-    .join("circle")
-    .attr("class", "dot")
-    .attr(
-      "transform",
-      (d) => `translate(${xScale(d.avgLvl)},${yScale(d.goldPerMonth)})`
-    )
-    .attr("r", (d) => sizeScale(d.membersCount))
-    .attr("fill", (d) => colorScale(d.mainClass))
-    .attr("stroke", "black");
-
-  //   .join(
-  //     enter => enter
-  //       .append("circle")
-  //         .attr("class", "dot")
-  //         .attr("transform", `translate(${margin.left}, ${height - margin.top})`)
-  //         .attr("r", d => sizeScale(d["Budget (million $)"]))
-  //         .attr("fill", d => colorScale(d.Genre))
-  //         .attr("stroke", "black")
-  //         .attr("opacity", "0.4")
-  //         .on("mouseover", tipMouseover)
-  //         .on("mouseout", tipMouseout)
-  //       .call(enter => enter
-  //         .transition()
-  //           .duration(1500)
-  //           .delay((d, i) => yScale(d["Audience Ratings %"]) + i * 2)
-  //           .attr("transform", d => `translate(${xScale(d["Rotten Tomatoes Ratings %"])}, ${yScale(d["Audience Ratings %"])})`)
-  //       )
-  //   );
-
-  // TOOLTIPS ----------------------------------------------------
-
-  dot.attr("data-tippy-allowHTML", true);
-
-  dot.attr("data-tippy-content", (d) => {
-    return `
-    <div class="tooltip">
-      <p class="guild-name">The ${d.guildName}</p>
-      <div class="info">
-        <p><span>Main Class: </span>${d.mainClass}</p>
-        <p><span>Average Level: </span>${d.avgLvl}</p>
-        <p><span>Gold Per Month: </span>${d.goldPerMonth}</p>
-        <p><span>Member Count: </span>${d.membersCount}</p>
-      </div>
-    </div>
-    `;
-  });
-
-  tippy(dot.nodes());
 
   //   // LEGENDS ------------------------------------------------
   //   // Title for Legend
@@ -174,7 +134,7 @@ d3.csv("data.csv", d3.autoType).then((data) => {
     .attr("alignment-baseline", "middle");
 
   //   // Grabbing the min, median, and max of budgets
-  const allMemberCounts = data.map((d) => d.membersCount);
+  const allMemberCounts = state.data.map((d) => d.membersCount);
   const threeMemberCounts = [
     d3.min(allMemberCounts),
     d3.median(allMemberCounts),
@@ -214,4 +174,117 @@ d3.csv("data.csv", d3.autoType).then((data) => {
     .text((d) => d + " members")
     .style("font-size", "15px")
     .attr("alignment-baseline", "middle");
-});
+
+  // USER INTERFACE SETUP FOR VIS OPTIONS ===================
+
+  // Grab elements for listeners and values
+  const selectMenu = d3.select("#dropdown");
+  const selectClassText = d3.selectAll(".legend-class");
+  const selectClassColor = d3.selectAll(".legend-dot");
+
+  // Create array for holding vis options
+  const menuData = [{ key: "All", label: "All" }];
+
+  // Fill menuData with the possible data vis options
+  allClasses.map((mainClass) => {
+    menuData.push({ key: mainClass, label: mainClass });
+  });
+
+  // Create options in UI menu for user to click
+  selectMenu
+    .selectAll("option")
+    .data(menuData)
+    .join("option")
+    .attr("value", (d) => d.key)
+    .text((d) => d.label);
+
+  // Listen for user changes on menu and call draw
+  selectMenu.on("change", (event) => {
+    state.selectedClass = event.target.value;
+    draw();
+  });
+
+  // Listen for clicks on Class or Colors
+  selectClassText.on("click", (_, d) => updateSelection(d));
+  selectClassColor.on("click", (_, d) => updateSelection(d));
+
+  // Update selected Class and call draw
+  const updateSelection = (d) => {
+    // Get index of Class or color
+    let classIdx =
+      allClasses.indexOf(d) >= 0 ? allClasses.indexOf(d) : allColors.indexOf(d);
+
+    // Change menu option to current select option
+    document.getElementById("dropdown").options.selectedIndex = classIdx + 1;
+
+    state.selectedClass = allClasses[classIdx];
+
+    draw();
+  };
+
+  // Call draw function once Init() is finished for the first time
+  draw();
+}
+
+// DRAW FUNCTION ####################################################
+function draw() {
+  // Filter wanted data based on current state
+  const filteredData = state.data.filter(
+    (d) => state.selectedClass === "All" || state.selectedClass === d.mainClass
+  );
+
+  console.log(filteredData);
+
+  // DOTS FOR SCATTERPLOT ----------------------------------
+  const dot = svg
+    .selectAll(".dot")
+    .data(filteredData, (d) => d.guildName)
+    .join(
+      (enter) =>
+        enter
+          .append("circle")
+          .attr("class", "dot")
+          .attr(
+            "transform",
+            (d) => `translate(${xScale(d.avgLvl)},${yScale(d.goldPerMonth)})`
+          )
+          .attr("r", 0)
+          .attr("fill", (d) => colorScale(d.mainClass))
+          .attr("stroke", "black")
+          .call((enter) =>
+            enter
+              .transition()
+              .attr("r", (d) => sizeScale(d.membersCount))
+              .duration(1500)
+          ),
+      (update) =>
+        update
+          .attr("stroke-width", "3px")
+          .call((update) =>
+            update.transition().attr("stroke-width", "1px").duration(1000)
+          ),
+      (exit) =>
+        exit
+          .call((exit) => exit.transition().duration(500).attr("r", 0))
+          .remove()
+    );
+
+  // Tooltip Handling =============================================
+  dot.attr("data-tippy-allowHTML", true);
+
+  dot.attr("data-tippy-content", (d) => {
+    return `
+    <div class="tooltip">
+      <p class="guild-name">The ${d.guildName}</p>
+      <div class="info">
+        <p><span>Main Class: </span>${d.mainClass}</p>
+        <p><span>Average Level: </span>${d.avgLvl}</p>
+        <p><span>Gold Per Month: </span>${d.goldPerMonth}</p>
+        <p><span>Member Count: </span>${d.membersCount}</p>
+      </div>
+    </div>
+    `;
+  });
+
+  tippy(dot.nodes());
+}
